@@ -6,13 +6,17 @@
         table {
             border-collapse: collapse;
             margin-bottom: 20px;
+            table-layout: fixed;
         }
 
         th,
         td {
             border: 1px solid #ddd;
+            width:20px;
+            height:20px;
             padding: 8px;
             text-align: left;
+            white-space: nowrap;
         }
 
         th {
@@ -26,47 +30,49 @@
 
   <h1>Word Play Solver</h1>
 
+  <!--
   <input type="checkbox" id="extratile1" name="extratile1" value="extra1">
   <label for="extratile1"> Extra tile</label>
   <input type="checkbox" id="extratile2" name="extratile2" value="extra2" disabled>
   <label for="extratile2"> Extra tile</label>
   <input type="checkbox" id="extratile3" name="extratile3" value="extra3" disabled>
   <label for="extratile3"> Extra tile</label><br/><br/>
+  -->
 
   <input type="checkbox" id="firstvowel" name="firstvowel" value="flagfirstvowel">
   <label for="firstvowel"> First letter is a vowel</label><br>
   <input type="checkbox" id="startsendssame" name="startsendssame" value="flagstartsendssame">
   <label for="startsendssame"> Starts and ends with same letter</label><br>
   <input type="checkbox" id="consecutivesame" name="consecutivesame" value="flagconsecutivesame">
-  <label for="consecutivesame"> Two consecutive repeated letter</label><br> 
+  <label for="consecutivesame"> Two consecutive repeated letter</label><br>
 
-  <input id="lineinput" placeholder="Available letters" name="lineinput" />
+  <input id="lineinput" placeholder="Available tiles" name="lineinput" />
   <button id="linesubmit">Submit!</button>
 
-  <table id="tableletters">
+  <table id="tabletiles">
     <tr>
-      <td> 01 </td>
+      <td> X </td>
       <td> 02 </td>
       <td> 03 </td>
       <td> 04 </td>
       <td> 05 </td>
     </tr>
     <tr>
-      <td> 11 </td>
+      <td> X </td>
       <td> 12 </td>
       <td> 13 </td>
       <td> 14 </td>
       <td> 15 </td>
     </tr>
     <tr>
-      <td> 21 </td>
+      <td> X </td>
       <td> 22 </td>
       <td> 23 </td>
       <td> 24 </td>
       <td> 25 </td>
     </tr>
     <tr>
-      <td> </td>
+      <td> - </td>
       <td> 32 </td>
       <td> 33 </td>
       <td> 34 </td>
@@ -74,9 +80,9 @@
     </tr>
   </table>
 
-  <input type="checkbox" id="startletterselector" name="startletterselector" value="flagstartletterselector">
-  <label for="startletterselector"> Starts with letter</label>
-  <input id="startsletter" placeholder="Start letter" name="linestartletter" disabled/>
+  <input type="checkbox" id="starttilesselector" name="starttilesselector" value="flagstarttilesselector">
+  <label for="starttilesselector"> Starts with letter</label>
+  <input id="startstiles" placeholder="Start tiles" name="linestarttiles" disabled/>
 
   <h2> Best words </h2>
   <table id="tablewords">
@@ -86,22 +92,54 @@
   </table>
 
   <script>
-    const input = document.getElementById("lineinput");
-    input.addEventListener("input", updateValue);
+    const lineinputinstance = document.getElementById("lineinput");
+    lineinputinstance.addEventListener("input", lineInputListener);
+    const tabletilesinstance = document.getElementById("tabletiles");
 
     // Debug see the changes of the input field
-    function updateValue(e) {
-      console.log(e.target.value);
+    function lineInputListener(e) {
+      let rownum = 0;
+      let colnum = 1;
+      const colstart = 1;
+      const colwidth = 5;
+      // Reimplement with tokenizer
+      const letters = e.target.value.split('');
+      for(let idx = 0; idx<16; idx++) {
+        let ltr = "";
+        if (idx < letters.length) {
+          ltr = letters[idx];
+        }
+        tabletilesinstance.rows[rownum].cells[colnum++].innerHTML = ltr;
+        if (colnum >= colwidth) {
+          colnum = colstart;
+          rownum++;
+        }
+      }
+      if(letters.length > 16) {
+        tabletilesinstance.rows[0].cells[0].innerHTML = letters[16];
+      } else {
+        tabletilesinstance.rows[0].cells[0].innerHTML = 'X';
+      }
+      if(letters.length > 17) {
+        tabletilesinstance.rows[1].cells[0].innerHTML = letters[17];
+      } else {
+        tabletilesinstance.rows[1].cells[0].innerHTML = 'X';
+      }
+      if(letters.length > 18) {
+        tabletilesinstance.rows[2].cells[0].innerHTML = letters[18];
+      } else {
+        tabletilesinstance.rows[2].cells[0].innerHTML = 'X';
+      }
     }
 
-    // Starts with letter selector logic
-    const startletterselectorinstance = document.getElementById("startletterselector");
-    const startsletterinstance = document.getElementById("startsletter");
-    startletterselectorinstance.addEventListener("click", startsWithLetterHandler);
-    function startsWithLetterHandler(e) {
-      startsletterinstance.toggleAttribute("disabled");
-      if (startsletterinstance.hasAttribute("disabled")) {
-        startsletterinstance.value = "";
+    // Starts with tiles selector logic
+    const starttilesselectorinstance = document.getElementById("starttilesselector");
+    const startstilesinstance = document.getElementById("startstiles");
+    starttilesselectorinstance.addEventListener("click", startsWithtilesHandler);
+    function startsWithtilesHandler(e) {
+      startstilesinstance.toggleAttribute("disabled");
+      if (startstilesinstance.hasAttribute("disabled")) {
+        startstilesinstance.value = "";
       }
     }
 
