@@ -3,32 +3,47 @@
 <head>
   <title>Word Play Solver</title>
   <style>
-        table {
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            table-layout: fixed;
-        }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 2em;
+      table-layout: fixed;
+    }
 
-        th,
-        td {
-            border: 1px solid #ddd;
-            width:20px;
-            height:20px;
-            padding: 8px;
-            text-align: left;
-            white-space: nowrap;
-        }
+    th,
+    td {
+      border: 1px solid #ddd;
+      width:2em;
+      height:2em;
+      padding: 8px;
+      text-align: center;
+      white-space: nowrap;
+    }
 
-        th {
-            background-color: #4CAF50;
-            color: #fff;
-        }
-    </style>
+    th {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+
+    .progressbar {
+      margin-top: 1em;
+      width: 100vw;
+      height: 1em;
+      background: red;
+      transition: 0.3s;
+    }
+  </style>
 </head>
 
 <body>
 
   <h1>Word Play Solver</h1>
+
+  <h3> File handling </h3>
+  Word count: <label id="filewordscount"> 0 </label>
+  <input id="filewords" type="file"><br>
+  <label for="filewords">
+    Upload your resources.assets file from your install
+  </label><br>
 
   <!--
   <input type="checkbox" id="extratile1" name="extratile1" value="extra1">
@@ -39,13 +54,18 @@
   <label for="extratile3"> Extra tile</label><br/><br/>
   -->
 
-  <input type="checkbox" id="firstvowel" name="firstvowel" value="flagfirstvowel">
+  <h3> Special modifiers </h3>
+  <input type="checkbox" id="firstvowel" name="firstvowel"
+    value="flagfirstvowel">
   <label for="firstvowel"> First letter is a vowel</label><br>
-  <input type="checkbox" id="startsendssame" name="startsendssame" value="flagstartsendssame">
+  <input type="checkbox" id="startsendssame" name="startsendssame"
+    value="flagstartsendssame">
   <label for="startsendssame"> Starts and ends with same letter</label><br>
-  <input type="checkbox" id="consecutivesame" name="consecutivesame" value="flagconsecutivesame">
+  <input type="checkbox" id="consecutivesame" name="consecutivesame"
+    value="flagconsecutivesame">
   <label for="consecutivesame"> Two consecutive repeated letter</label><br>
 
+  <h3> Input </h3>
   <input id="lineinput" placeholder="Available tiles" name="lineinput" />
   <button id="linesubmit">Submit!</button>
 
@@ -80,9 +100,11 @@
     </tr>
   </table>
 
-  <input type="checkbox" id="starttilesselector" name="starttilesselector" value="flagstarttilesselector">
+  <input type="checkbox" id="starttilesselector" name="starttilesselector"
+    value="flagstarttilesselector">
   <label for="starttilesselector"> Starts with letter</label>
-  <input id="startstiles" placeholder="Start tiles" name="linestarttiles" disabled/>
+  <input id="startstiles" placeholder="Start tiles" name="linestarttiles"
+    disabled/>
 
   <h2> Best words </h2>
   <table id="tablewords">
@@ -92,6 +114,81 @@
   </table>
 
   <script>
+////////////////////////////////////////////////////////////////////////////////
+// Config settings
+////////////////////////////////////////////////////////////////////////////////
+    const VALID_LETTERS = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ*');
+    const WORD_LENGTH_THRESHOLD = 3;
+
+////////////////////////////////////////////////////////////////////////////////
+// Global variables
+////////////////////////////////////////////////////////////////////////////////
+    let WORD_LIST = new Set();
+    // Setup all the starting points to reduce the logic after
+    let WORD_TREE = new Map();
+    //VALID_LETTERS.forEach((el, index) => WORD_TREE[el] = {});
+
+
+////////////////////////////////////////////////////////////////////////////////
+// File loading logic
+////////////////////////////////////////////////////////////////////////////////
+    const filewordsinstance = document.getElementById("filewords");
+    const filewordscountinstance = document.getElementById("filewordscount");
+    filewordsinstance.addEventListener("change", filewordshandler);
+    const fileprogressbarinstance = document.getElementById("fileprogressbar");
+
+    function processFileWords(rawtext) {
+      console.log(VALID_LETTERS);
+      let wordLength = 0;
+      let currentWord = "";
+      for (let letter of rawtext) {
+        if (VALID_LETTERS.has(letter)) {
+          wordLength++;
+          currentWord += letter;
+        } else {
+          if (wordLength >= WORD_LENGTH_THRESHOLD) {
+            WORD_LIST.add(currentWord);
+            let currentWordTree = WORD_TREE;
+            for (wordletter of currentWord) {
+              if (!currentWordTree.has(wordletter)) {
+                currentWordTree[wordletter] = new Map();
+              }
+              currentWordTree = currentWordTree[wordletter];
+            }
+          }
+          wordLength = 0;
+          currentWord = "";
+        }
+      }
+      filewordscountinstance.innerHTML = WORD_LIST.size;
+      console.log(WORD_TREE);
+    }
+
+    function processFileWordsCB(e) {
+        processFileWords(e.target.result);
+    }
+
+    function readFileWords(file) {
+      const info = `File Name: "${file.name}" File Size: ${file.size}B`;
+      console.log(info);
+      const reader = new FileReader();
+      reader.onload = processFileWordsCB;
+      reader.readAsText(file);
+    }
+
+    function filewordshandler(e) {
+      const file = e.target.files[0];
+      readFileWords(file);
+    }
+
+    // If already selected load the file
+    if (filewordsinstance.files[0]) {
+      readFileWords(filewordsinstance.files[0]);
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+// Display and event logic
+////////////////////////////////////////////////////////////////////////////////
     const lineinputinstance = document.getElementById("lineinput");
     lineinputinstance.addEventListener("input", lineInputListener);
     const tabletilesinstance = document.getElementById("tabletiles");
@@ -129,12 +226,22 @@
       } else {
         tabletilesinstance.rows[2].cells[0].innerHTML = 'X';
       }
+      if(letters.length > 19) {
+        while(letters.length > 19) {
+          letters.pop();
+        }
+        e.target.value = letters.join("");
+      }
     }
 
     // Starts with tiles selector logic
-    const starttilesselectorinstance = document.getElementById("starttilesselector");
+    const starttilesselectorinstance = document.getElementById(
+      "starttilesselector"
+    );
     const startstilesinstance = document.getElementById("startstiles");
-    starttilesselectorinstance.addEventListener("click", startsWithtilesHandler);
+    starttilesselectorinstance.addEventListener("click",
+      startsWithtilesHandler
+    );
     function startsWithtilesHandler(e) {
       startstilesinstance.toggleAttribute("disabled");
       if (startstilesinstance.hasAttribute("disabled")) {
@@ -143,6 +250,5 @@
     }
 
   </script>
-
 </body>
 </html>
