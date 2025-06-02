@@ -3,10 +3,17 @@
 <head>
   <title>Word Play Solver</title>
   <style>
-    table {
+    .table-grid {
       border-collapse: collapse;
       margin-bottom: 2em;
       table-layout: fixed;
+    }
+
+    .table-results {
+      border-collapse: collapse;
+      margin-bottom: 2em;
+      table-layout: fixed;
+      width: 30em;
     }
 
     th,
@@ -22,14 +29,6 @@
     th {
       background-color: #4CAF50;
       color: #fff;
-    }
-
-    .progressbar {
-      margin-top: 1em;
-      width: 100vw;
-      height: 1em;
-      background: red;
-      transition: 0.3s;
     }
   </style>
 </head>
@@ -69,34 +68,34 @@
   <input id="lineinput" placeholder="Available tiles" name="lineinput" />
   <button id="linesubmit">Submit!</button>
 
-  <table id="tabletiles">
+  <table id="tabletiles" class="table-grid">
     <tr>
-      <td> X </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
+      <td> 17 </td>
+      <td> 1 </td>
+      <td> 2 </td>
+      <td> 3 </td>
+      <td> 4 </td>
     </tr>
     <tr>
-      <td> X </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
+      <td> 18 </td>
+      <td> 5 </td>
+      <td> 6 </td>
+      <td> 7 </td>
+      <td> 8 </td>
     </tr>
     <tr>
-      <td> X </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
+      <td> 19 </td>
+      <td> 9 </td>
+      <td> 10 </td>
+      <td> 11 </td>
+      <td> 12 </td>
     </tr>
     <tr>
       <td> - </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
-      <td>  </td>
+      <td> 13 </td>
+      <td> 14 </td>
+      <td> 15 </td>
+      <td> 16 </td>
     </tr>
   </table>
 
@@ -107,9 +106,11 @@
     disabled/>
 
   <h2> Best words </h2>
-  <table id="tablewords">
+  <table id="tablewords" class="table-results">
     <tr>
-      <td> Write something first </td>
+      <td> Word </td>
+      <td> Letter Score </td>
+      <td> Extra Score </td>
     </tr>
   </table>
 
@@ -128,15 +129,13 @@
     let WORD_TREE = new Map();
     //VALID_LETTERS.forEach((el, index) => WORD_TREE[el] = {});
 
-
 ////////////////////////////////////////////////////////////////////////////////
-// File loading logic
+// Word graph processing
 ////////////////////////////////////////////////////////////////////////////////
-    const filewordsinstance = document.getElementById("filewords");
-    const filewordscountinstance = document.getElementById("filewordscount");
-    filewordsinstance.addEventListener("change", filewordshandler);
-    const fileprogressbarinstance = document.getElementById("fileprogressbar");
 
+    // In this function we pre-process the file and optimize the information
+    // into a format far more efficient for the processing we want to realize
+    // with it.
     function processFileWords(rawtext) {
       console.log(VALID_LETTERS);
       let wordLength = 0;
@@ -151,7 +150,9 @@
             WORD_LIST.add(currentWord);
             // Also add it to the tre of possibilities
             let currentWordTree = WORD_TREE;
-
+            // The logic of the loop is just to generate the tree of
+            // possibilities. For that letter by letter we add them
+            // to the space linking forwards.
             for (wordletter of currentWord) {
               if (! (wordletter in currentWordTree)) {
                 currentWordTree[wordletter] = new Map();
@@ -164,8 +165,18 @@
         }
       }
       filewordscountinstance.innerHTML = WORD_LIST.size;
-      console.log(WORD_TREE);
+      // Uncomment the line after to see the tree structure of all the
+      // letters and it's possible continuations.
+      //console.log(WORD_TREE);
     }
+
+////////////////////////////////////////////////////////////////////////////////
+// File loading logic
+////////////////////////////////////////////////////////////////////////////////
+    const filewordsinstance = document.getElementById("filewords");
+    const filewordscountinstance = document.getElementById("filewordscount");
+    filewordsinstance.addEventListener("change", filewordshandler);
+    const fileprogressbarinstance = document.getElementById("fileprogressbar");
 
     function processFileWordsCB(e) {
         processFileWords(e.target.result);
@@ -173,7 +184,8 @@
 
     function readFileWords(file) {
       const info = `File Name: "${file.name}" File Size: ${file.size}B`;
-      console.log(info);
+      // Debug log just to confirm the correct data is being read
+      //console.log(info);
       const reader = new FileReader();
       reader.onload = processFileWordsCB;
       reader.readAsText(file);
@@ -201,12 +213,19 @@
     function lineInputListener(e) {
       let rownum = 0;
       let colnum = 1;
+      const gridLenght = 16;
       const colstart = 1;
       const colwidth = 5;
       // Reimplement with tokenizer
-      const letters = e.target.value.split('');
-      for(let idx = 0; idx<16; idx++) {
-        let ltr = "";
+      let letters = e.target.value.split('');
+
+
+      // Put the number of the position where there is no letter
+      let counterPos = 1;
+
+      // Fill the table
+      for(let idx = 0; idx<gridLenght; idx++) {
+        let ltr = counterPos++;
         if (idx < letters.length) {
           ltr = letters[idx];
         }
@@ -216,21 +235,19 @@
           rownum++;
         }
       }
-      if(letters.length > 16) {
-        tabletilesinstance.rows[0].cells[0].innerHTML = letters[16];
-      } else {
-        tabletilesinstance.rows[0].cells[0].innerHTML = 'X';
+
+      // For the last 3 letters are the first column of the first three rows
+      // For that, we manage them differently
+      for(let idx=0; idx<3; idx++) {
+        const pos=gridLenght+idx;
+        let ltr = counterPos++;
+        if(letters.length > pos) {
+          ltr = letters[pos];
+        }
+        tabletilesinstance.rows[idx].cells[0].innerHTML = ltr;
       }
-      if(letters.length > 17) {
-        tabletilesinstance.rows[1].cells[0].innerHTML = letters[17];
-      } else {
-        tabletilesinstance.rows[1].cells[0].innerHTML = 'X';
-      }
-      if(letters.length > 18) {
-        tabletilesinstance.rows[2].cells[0].innerHTML = letters[18];
-      } else {
-        tabletilesinstance.rows[2].cells[0].innerHTML = 'X';
-      }
+
+      // Limit the letter count, still thinking if this is too strict
       if(letters.length > 19) {
         while(letters.length > 19) {
           letters.pop();
