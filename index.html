@@ -147,10 +147,13 @@
           currentWord += letter;
         } else {
           if (wordLength >= WORD_LENGTH_THRESHOLD) {
+            // If the word is valid, add it to the list
             WORD_LIST.add(currentWord);
+            // Also add it to the tre of possibilities
             let currentWordTree = WORD_TREE;
+
             for (wordletter of currentWord) {
-              if (!currentWordTree.has(wordletter)) {
+              if (! (wordletter in currentWordTree)) {
                 currentWordTree[wordletter] = new Map();
               }
               currentWordTree = currentWordTree[wordletter];
@@ -177,6 +180,8 @@
     }
 
     function filewordshandler(e) {
+      WORD_TREE = new Map();
+      WORD_LIST = new Set();
       const file = e.target.files[0];
       readFileWords(file);
     }
