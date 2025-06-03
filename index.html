@@ -204,10 +204,9 @@
 
     function tileToLetters(tile) {
       let letterSeq = tile;
-      if (letterSeq.length) {
+      if (letterSeq.length > 1) {
         letterSeq = tile.split('');
-      }
-      if (tile == "*") {
+      } else if (tile == "*") {
         letterSeq = SEARCH_LETTERS;
       }
       return letterSeq;
@@ -217,16 +216,21 @@
       let resultTokens = [];
       availableLetters = availableLetters.toUpperCase();
       const splitAvailableLetters = availableLetters.split('');
+      // Traverse the full array of characters
       for(let idx = 0; idx<splitAvailableLetters.length ; idx++) {
         let specialSeqFound = false;
+        // Check at the current position if it is a special sequence
         for(const specialSeq of SPECIAL_SEQUENCES) {
           if (availableLetters.indexOf(specialSeq, idx) == idx) {
+            // Add the special sequence to the result
             resultTokens.push(specialSeq);
+            // Advance forward the extra letters
             idx += specialSeq.length -1;
             specialSeqFound = true;
             break;
           }
         }
+        // If not a special sequence add the character to the list
         if (! specialSeqFound) {
           const curLet = splitAvailableLetters[idx];
           resultTokens.push(curLet);
@@ -251,33 +255,34 @@
       console.log(letters);
     }
 
+    function validateWord(possibleWord) {
+      if (possibleWord.length >= WORD_LENGTH_THRESHOLD) {
+        // If the word is valid, add it to the list
+        WORD_LIST.add(possibleWord);
+        // Also add it to the tre of possibilities
+        let currentWordTree = WORD_TREE;
+        // The logic of the loop is just to generate the tree of
+        // possibilities. For that letter by letter we add them
+        // to the space linking forwards.
+        for (wordletter of possibleWord) {
+          if (! (wordletter in currentWordTree)) {
+            currentWordTree[wordletter] = new Map();
+          }
+          currentWordTree = currentWordTree[wordletter];
+        }
+      }
+    }
+
     // In this function we pre-process the file and optimize the information
     // into a format far more efficient for the processing we want to realize
     // with it.
     function processFileWords(rawtext) {
-      let wordLength = 0;
       let currentWord = "";
       for (let letter of rawtext) {
         if (VALID_LETTERS.has(letter)) {
-          wordLength++;
           currentWord += letter;
         } else {
-          if (wordLength >= WORD_LENGTH_THRESHOLD) {
-            // If the word is valid, add it to the list
-            WORD_LIST.add(currentWord);
-            // Also add it to the tre of possibilities
-            let currentWordTree = WORD_TREE;
-            // The logic of the loop is just to generate the tree of
-            // possibilities. For that letter by letter we add them
-            // to the space linking forwards.
-            for (wordletter of currentWord) {
-              if (! (wordletter in currentWordTree)) {
-                currentWordTree[wordletter] = new Map();
-              }
-              currentWordTree = currentWordTree[wordletter];
-            }
-          }
-          wordLength = 0;
+          validateWord(currentWord);
           currentWord = "";
         }
       }
