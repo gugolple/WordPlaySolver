@@ -202,6 +202,25 @@
 // Word graph logic
 ////////////////////////////////////////////////////////////////////////////////
 
+    // Main logic of all this system, traverse the complete graph and return
+    // the reachable words from the full pool of possibilities
+    function treeSearchRecursive(availableTokens) {
+
+    }
+
+    // This function is the entry point, setting the recursive needed variables
+    // for the main logic
+    function treeSearch(availableLetters) {
+      let tokens = availableLettersTokenizer(availableLetters);
+      let seen = new Set();
+
+      console.log(tokens);
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+// Word logic
+////////////////////////////////////////////////////////////////////////////////
+
     function tileToLetters(tile) {
       let letterSeq = tile;
       if (letterSeq.length > 1) {
@@ -236,23 +255,7 @@
           resultTokens.push(curLet);
         }
       }
-      console.log(resultTokens);
       return resultTokens;
-    }
-
-    // Main logic of all this system, traverse the complete graph and return
-    // the reachable words from the full pool of possibilities
-    function treeSearchRecursive(availableLetters) {
-
-    }
-
-    // This function is the entry point, setting the recursive needed variables
-    // for the main logic
-    function treeSearch(availableLetters) {
-      let letters = availableLettersTokenizer(availableLetters);
-      let seen = new Set();
-
-      console.log(letters);
     }
 
     function validateWord(possibleWord) {
@@ -273,6 +276,14 @@
       }
     }
 
+////////////////////////////////////////////////////////////////////////////////
+// File loading logic
+////////////////////////////////////////////////////////////////////////////////
+    const filewordsinstance = document.getElementById("filewords");
+    const filewordscountinstance = document.getElementById("filewordscount");
+    filewordsinstance.addEventListener("change", filewordshandler);
+    const fileprogressbarinstance = document.getElementById("fileprogressbar");
+
     // In this function we pre-process the file and optimize the information
     // into a format far more efficient for the processing we want to realize
     // with it.
@@ -291,14 +302,6 @@
       // letters and it's possible continuations.
       //console.log(WORD_TREE);
     }
-
-////////////////////////////////////////////////////////////////////////////////
-// File loading logic
-////////////////////////////////////////////////////////////////////////////////
-    const filewordsinstance = document.getElementById("filewords");
-    const filewordscountinstance = document.getElementById("filewordscount");
-    filewordsinstance.addEventListener("change", filewordshandler);
-    const fileprogressbarinstance = document.getElementById("fileprogressbar");
 
     function processFileWordsCB(e) {
         processFileWords(e.target.result);
