@@ -202,19 +202,125 @@
 // Word graph logic
 ////////////////////////////////////////////////////////////////////////////////
 
+    function cloneArrayRemoveInstance(originalArray, element) {
+        let nextOriginalArray = originalArray.slice(0);
+        nextOriginalArray.splice(
+          nextOriginalArray.indexOf(currentTile),
+          1
+        );
+        return nextOriginalArray;
+    }
+
     // Main logic of all this system, traverse the complete graph and return
     // the reachable words from the full pool of possibilities
-    function treeSearchRecursive(availableTokens) {
+    function treeSearchRecursive(
+      currentTree,
+      availableTokens,
+      seenWords,
+      currentWord
+    ) {
+      // Basic backtracking concept, do not realize known work twice
+      // The specific work is the word and the available tokens
+      //   This is specially important for joker tiles
+      const currentSituation = [currentWord, availableTokens];
+      if (currentSituation in seenWords) {
+        return new Set();
+      }
+      // We must add to the set in an array to prevent the set function from
+      // splitting the string into characters
+      seenWords.add([currentSituation]);
+      let resultSet = new Set();
+      if (WORD_LIST.has(currentWord)) {
+        resultSet.add([currentWord]);
+      }
+      // Debug to check the progress of the search
+      //console.log("Recursed tile", currentWord, WORD_LIST.has(currentWord));
 
+      for(currentTile of new Set(availableTokens)) {
+        // First scenario, the joker
+        if (currentTile == "*") {
+          let nextTokens = cloneArrayRemoveInstance(tokens, currentTile);
+          for (possibleTile of SEARCH_LETTERS) {
+            if (possibleTile in currentTree) {
+              resultSet = resultSet.union(
+                treeSearchRecursive(
+                  currentTree[possibleTile],
+                  nextTokens,
+                  seenWords,
+                  currentWord + possibleTile
+                )
+              );
+            }
+          }
+          continue;
+        // Second scenario, a complex tile
+        } else if (currentTile.length > 1) {
+          let currentWordTree = currentTree;
+          // Search block
+          let validStart = true;
+          // Search for the start sequence
+          for(letter of currentTile) {
+            if (letter in currentWordTree) {
+              currentWordTree = currentWordTree[letter];
+            } else {
+              validStart = false;
+              break;
+            }
+          }
+          // If the start is valid
+          //   we already know the subtree location and can jump directly
+          if (validStart) {
+            let nextTokens = cloneArrayRemoveInstance(
+              availableTokens,
+              currentTile
+            );
+            resultSet = resultSet.union(
+              treeSearchRecursive(
+                currentWordTree,
+                nextTokens,
+                seenWords,
+                currentWord + currentTile
+              )
+            );
+          }
+        // Third scenario, a basic tile
+        } else {
+          if (currentTile in currentTree) {
+            let nextTokens = cloneArrayRemoveInstance(
+              availableTokens,
+              currentTile
+            );
+            resultSet = resultSet.union(
+              treeSearchRecursive(
+                currentTree[currentTile],
+                nextTokens,
+                seenWords,
+                currentWord + currentTile
+              )
+            );
+          }
+        }
+      }
+      return resultSet;
     }
 
     // This function is the entry point, setting the recursive needed variables
     // for the main logic
     function treeSearch(availableLetters) {
       let tokens = availableLettersTokenizer(availableLetters);
+      // Sort to have an stable search, making all tiles of the same value
+      // interchangable
+      tokens.sort();
+      console.log("Sorted tokens", tokens);
+      console.log(WORD_LIST);
       let seen = new Set();
-
-      console.log(tokens);
+      let answers = treeSearchRecursive(
+        WORD_TREE,
+        tokens,
+        seen,
+        ""
+      );
+      console.log(answers);
     }
 
 ////////////////////////////////////////////////////////////////////////////////
