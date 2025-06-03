@@ -239,7 +239,7 @@
       for(currentTile of new Set(availableTokens)) {
         // First scenario, the joker
         if (currentTile == "*") {
-          let nextTokens = cloneArrayRemoveInstance(tokens, currentTile);
+          let nextTokens = cloneArrayRemoveInstance(availableTokens, currentTile);
           for (possibleTile of SEARCH_LETTERS) {
             if (possibleTile in currentTree) {
               resultSet = resultSet.union(
@@ -312,7 +312,6 @@
       // interchangable
       tokens.sort();
       console.log("Sorted tokens", tokens);
-      console.log(WORD_LIST);
       let seen = new Set();
       let answers = treeSearchRecursive(
         WORD_TREE,
