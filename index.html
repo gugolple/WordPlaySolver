@@ -41,7 +41,8 @@
   Word count: <label id="filewordscount"> 0 </label>
   <input id="filewords" type="file"><br>
   <label for="filewords">
-    Upload your resources.assets file from your install
+    Upload your "resources.assets" file from your "Word Play/Word Play_Data"
+    install
   </label><br>
 
   <!--
@@ -119,25 +120,141 @@
 // Config settings
 ////////////////////////////////////////////////////////////////////////////////
     const VALID_LETTERS = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ*');
+    const SEARCH_LETTERS = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
     const WORD_LENGTH_THRESHOLD = 3;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global variables
 ////////////////////////////////////////////////////////////////////////////////
+    // This represent the current searchable space of possibilities once
+    // initialized
     let WORD_LIST = new Set();
-    // Setup all the starting points to reduce the logic after
     let WORD_TREE = new Map();
-    //VALID_LETTERS.forEach((el, index) => WORD_TREE[el] = {});
 
 ////////////////////////////////////////////////////////////////////////////////
-// Word graph processing
+// Word scoring constants
 ////////////////////////////////////////////////////////////////////////////////
+    const VOWELS = "AEIOU".split('');
+    const SPECIAL_SEQUENCES = ["QU", "ING"];
+    const LETTER_VALS = {
+      'A': 1,
+      'B': 3,
+      'C': 3,
+      'D': 2,
+      'E': 1,
+      'F': 4,
+      'G': 2,
+      'H': 4,
+      'I': 1,
+      'J': 8,
+      'K': 5,
+      'L': 1,
+      'M': 3,
+      'N': 1,
+      'O': 1,
+      'P': 3,
+      'Q': 10,
+      'R': 1,
+      'S': 1,
+      'T': 1,
+      'U': 1,
+      'V': 4,
+      'W': 4,
+      'X': 8,
+      'Y': 4,
+      'Z': 10,
+    // Special characters
+      '*': 0,
+    // Also include multi-tile
+      'QU': 10,
+      'ING': 8,
+    };
+    const WORD_LENGTH_SCORE = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 5,
+      6: 10,
+      7: 15,
+      8: 20,
+      9: 30,
+      10: 50,
+      11: 70,
+      12: 90,
+      13: 110,
+      14: 130,
+      15: 150,
+      16: 170,
+      17: 190,
+      18: 210,
+      19: 230,
+      20: 250,
+      21: 270,
+    };
+
+////////////////////////////////////////////////////////////////////////////////
+// Word scoring logic
+////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Word graph logic
+////////////////////////////////////////////////////////////////////////////////
+
+    function tileToLetters(tile) {
+      let letterSeq = tile;
+      if (letterSeq.length) {
+        letterSeq = tile.split('');
+      }
+      if (tile == "*") {
+        letterSeq = SEARCH_LETTERS;
+      }
+      return letterSeq;
+    }
+
+    function availableLettersTokenizer(availableLetters) {
+      let resultTokens = [];
+      availableLetters = availableLetters.toUpperCase();
+      const splitAvailableLetters = availableLetters.split('');
+      for(let idx = 0; idx<splitAvailableLetters.length ; idx++) {
+        let specialSeqFound = false;
+        for(const specialSeq of SPECIAL_SEQUENCES) {
+          if (availableLetters.indexOf(specialSeq, idx) == idx) {
+            resultTokens.push(specialSeq);
+            idx += specialSeq.length -1;
+            specialSeqFound = true;
+            break;
+          }
+        }
+        if (! specialSeqFound) {
+          const curLet = splitAvailableLetters[idx];
+          resultTokens.push(curLet);
+        }
+      }
+      console.log(resultTokens);
+      return resultTokens;
+    }
+
+    // Main logic of all this system, traverse the complete graph and return
+    // the reachable words from the full pool of possibilities
+    function treeSearchRecursive(availableLetters) {
+
+    }
+
+    // This function is the entry point, setting the recursive needed variables
+    // for the main logic
+    function treeSearch(availableLetters) {
+      let letters = availableLettersTokenizer(availableLetters);
+      let seen = new Set();
+
+      console.log(letters);
+    }
 
     // In this function we pre-process the file and optimize the information
     // into a format far more efficient for the processing we want to realize
     // with it.
     function processFileWords(rawtext) {
-      console.log(VALID_LETTERS);
       let wordLength = 0;
       let currentWord = "";
       for (let letter of rawtext) {
@@ -208,17 +325,27 @@
 ////////////////////////////////////////////////////////////////////////////////
     const lineinputinstance = document.getElementById("lineinput");
     lineinputinstance.addEventListener("input", lineInputListener);
+
+    const buttonlinessubmit = document.getElementById("linesubmit");
+    buttonlinessubmit.onclick = lineInputSumbmit;
     const tabletilesinstance = document.getElementById("tabletiles");
 
-    function lineInputListener(e) {
+    // Initializations from cached data
+    lineInputGridDisplay(lineinputinstance.value);
+
+    function lineInputSumbmit(e) {
+      treeSearch(lineinputinstance.value);
+    }
+
+    function lineInputGridDisplay(availableLetters) {
+      const LETTERS_LENGTH_LINE = 23;
       let rownum = 0;
       let colnum = 1;
       const gridLenght = 16;
       const colstart = 1;
       const colwidth = 5;
-      // Reimplement with tokenizer
-      let letters = e.target.value.split('');
 
+      let letters = availableLettersTokenizer(availableLetters);
 
       // Put the number of the position where there is no letter
       let counterPos = 1;
@@ -248,12 +375,16 @@
       }
 
       // Limit the letter count, still thinking if this is too strict
-      if(letters.length > 19) {
-        while(letters.length > 19) {
+      if(letters.length > LETTERS_LENGTH_LINE) {
+        while(letters.length > LETTERS_LENGTH_LINE) {
           letters.pop();
         }
-        e.target.value = letters.join("");
       }
+      lineinputinstance.value = letters.join("");
+    }
+
+    function lineInputListener(e) {
+      lineInputGridDisplay(e.target.value);
     }
 
     // Starts with tiles selector logic
