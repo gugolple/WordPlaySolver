@@ -582,10 +582,6 @@
     lineInputGridDisplay(lineinputinstance.value);
 
     function displayAnswers(answers) {
-      // First cleanup old answers
-      while(tablewordsinstance.rows.length > 1) {
-        tablewordsinstance.deleteRow(1);
-      }
       const startTiles = startstilesinstance.value;
       for(const resultWord of answers) {
         // If we have a start sequence skip words that do not match
@@ -614,6 +610,10 @@
       if (WORD_LIST.size == 0) {
         alert("No file selected!");
         return;
+      }
+      // Cleanup old answers
+      while(tablewordsinstance.rows.length > 1) {
+        tablewordsinstance.deleteRow(1);
       }
       let answers = treeSearch(lineinputinstance.value);
       displayAnswers(answers);
