@@ -135,8 +135,8 @@
 // Word scoring constants
 ////////////////////////////////////////////////////////////////////////////////
     const VOWELS = "AEIOU".split('');
-    const SPECIAL_SEQUENCES = ["QU", "ING"];
-    const LETTER_VALS = {
+    const LONG_TILES = ["QU", "ING"];
+    const TILE_SCORE = {
       'A': 1,
       'B': 3,
       'C': 3,
@@ -355,7 +355,7 @@
       for(let idx = 0; idx<splitAvailableLetters.length ; idx++) {
         let specialSeqFound = false;
         // Check at the current position if it is a special sequence
-        for(const specialSeq of SPECIAL_SEQUENCES) {
+        for(const specialSeq of LONG_TILES) {
           if (availableLetters.indexOf(specialSeq, idx) == idx) {
             // Add the special sequence to the result
             resultTiles.push(specialSeq);
