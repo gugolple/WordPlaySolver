@@ -245,6 +245,11 @@
         }
         total += TILE_SCORE[currentTile];
       }
+      // Remove the value of the given tile
+      const startTiles = startstilesinstance.value;
+      if (startTiles.length > 0) {
+        total -= TILE_SCORE[startTiles];
+      }
       return total;
     }
 
