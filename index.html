@@ -196,20 +196,24 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Word scoring logic
 ////////////////////////////////////////////////////////////////////////////////
-
-    function scoreWordByTiles(word, availableTiles) {
+    function scoreWordByTiles(wordTiles) {
       let total = 0;
       return total;
     }
 
-    function scoreWordByExtras(word) {
-      // TODO add multipliers
-      return WORD_LENGTH_SCORE[word.length];
+    function scoreWordByExtras(wordTiles) {
+      let score = WORD_LENGTH_SCORE[wordTiles.length];
+      if (firstvowelinstance.checked) {
+        if (wordTiles[0] in VOWELS) {
+          score *= 2;
+        }
+      }
+      return score;
     }
 
-    function scoreWordOverall(word, availableTiles) {
-      return scoreWordByTiles(word, availableTiles) +
-        scoreWordByExtras(word);
+    function scoreWordOverall(wordTiles) {
+      return scoreWordByTiles(wordTiles) +
+        scoreWordByExtras(wordTiles);
     }
 
 ////////////////////////////////////////////////////////////////////////////////
