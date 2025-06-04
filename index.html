@@ -240,7 +240,7 @@
       currentWordTiles
     ) {
       // Basic backtracking concept, do not realize known work twice
-      // The specific work is the word and the available tokens
+      // The specific work is the word and the available tiles
       //   This is specially important for joker tiles
       const currentSituation = [currentWord, availableTiles];
       if (currentSituation in seenWords) {
@@ -318,15 +318,15 @@
     // This function is the entry point, setting the recursive needed variables
     // for the main logic
     function treeSearch(availableLetters) {
-      let tokens = availableLettersTokenizer(availableLetters);
+      let tiles = availableLettersTileizer(availableLetters);
       // Sort to have an stable search, making all tiles of the same value
       // interchangable
-      tokens.sort();
-      console.log("Sorted tokens", tokens);
+      tiles.sort();
+      console.log("Sorted tiles", tiles);
       let seen = new Set();
       let answers = treeSearchRecursive(
         WORD_TREE,
-        tokens,
+        tiles,
         seen,
         "",
         []
@@ -351,7 +351,9 @@
       return letterSeq;
     }
 
-    function availableLettersTokenizer(availableLetters) {
+    // This function splits the string of letters inputted by the user into
+    // an array of tiles for the logic to utilize afterwords.
+    function availableLettersTileizer(availableLetters) {
       let resultTiles = [];
       availableLetters = availableLetters.toUpperCase();
       const splitAvailableLetters = availableLetters.split('');
@@ -478,7 +480,7 @@
       const colstart = 1;
       const colwidth = 5;
 
-      let letters = availableLettersTokenizer(availableLetters);
+      let letters = availableLettersTileizer(availableLetters);
 
       // Put the number of the position where there is no letter
       let counterPos = 1;
