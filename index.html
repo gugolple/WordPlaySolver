@@ -253,13 +253,15 @@
       // Debug to check the progress of the search
       //console.log("Recursed tile", currentWord, WORD_LIST.has(currentWord));
       for(currentTile of new Set(availableTiles)) {
+        // The logic to add the current tile to the array is shared
+        let nextWordTiles = currentWordTiles.slice();
+        nextWordTiles.push(currentTile);
+
         // First scenario, the joker
         if (currentTile == "*") {
           let nextTiles = cloneArrayRemoveInstance(availableTiles, currentTile);
           for (possibleTile of SEARCH_LETTERS) {
             if (possibleTile in currentTree) {
-              nextWordTiles = currentWordTiles.slice();
-              nextWordTiles.push(possibleTile);
               resultSet = resultSet.union(
                 treeSearchRecursive(
                   currentTree[possibleTile],
@@ -272,8 +274,8 @@
             }
           }
           continue;
-        // Second scenario, a complex tile
-        } else if (currentTile.length > 1) {
+        // Second scenario, a tile
+        } else {
           let currentWordTree = currentTree;
           // Search block
           let validStart = true;
@@ -293,30 +295,9 @@
               availableTiles,
               currentTile
             );
-            nextWordTiles = currentWordTiles.slice();
-            nextWordTiles.push(currentTile);
             resultSet = resultSet.union(
               treeSearchRecursive(
                 currentWordTree,
-                nextTiles,
-                seenWords,
-                currentWord + currentTile,
-                nextWordTiles
-              )
-            );
-          }
-        // Third scenario, a basic tile
-        } else {
-          if (currentTile in currentTree) {
-            let nextTiles = cloneArrayRemoveInstance(
-              availableTiles,
-              currentTile
-            );
-            nextWordTiles = currentWordTiles.slice();
-            nextWordTiles.push(currentTile);
-            resultSet = resultSet.union(
-              treeSearchRecursive(
-                currentTree[currentTile],
                 nextTiles,
                 seenWords,
                 currentWord + currentTile,
