@@ -196,8 +196,9 @@
     };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Word scoring logic
+// Capture the references for the HTML
 ////////////////////////////////////////////////////////////////////////////////
+    // Checkboxes for multipliers
     const firstvowelinstance = document.getElementById("firstvowel");
     //console.log("firstvowel", firstvowelinstance.checked);
     const startsendssameinstance = document.getElementById("startsendssame");
@@ -205,6 +206,37 @@
     const consecutivesameinstance = document.getElementById("consecutivesame");
     //console.log("consecutivesame", consecutivesameinstance.checked);
 
+    // File managing related
+    const filewordsinstance = document.getElementById("filewords");
+    const filewordscountinstance = document.getElementById("filewordscount");
+    filewordsinstance.addEventListener("change", filewordshandler);
+    const fileprogressbarinstance = document.getElementById("fileprogressbar");
+
+    // Main input from user
+    const lineinputinstance = document.getElementById("lineinput");
+    lineinputinstance.addEventListener("input", lineInputListener);
+    const buttonlinessubmit = document.getElementById("linesubmit");
+    buttonlinessubmit.onclick = lineInputSumbmit;
+
+    // Tables
+    const tabletilesinstance = document.getElementById("tabletiles");
+    const tablewordsinstance = document.getElementById("tablewords");
+
+    // Starts with related
+    const starttilesselectorinstance = document.getElementById(
+      "starttilesselector"
+    );
+    const startstilesinstance = document.getElementById("startstiles");
+    startstilesinstance.addEventListener("input", startTilesListener);
+    starttilesselectorinstance.addEventListener("click",
+      startsWithtilesHandler
+    );
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Word scoring logic
+////////////////////////////////////////////////////////////////////////////////
     function scoreWordByTiles(wordTiles) {
       let total = 0;
       for (let currentTile of wordTiles) {
@@ -400,6 +432,13 @@
     // for the main logic
     function treeSearch(availableLetters) {
       let tiles = availableLettersTileizer(availableLetters);
+
+      // Add the tile of the starts with letter
+      const startTiles = startstilesinstance.value;
+      if (startTiles.length > 0) {
+        tiles.push(startTiles);
+      }
+
       // Sort to have an stable search, making all tiles of the same value
       // interchangable
       tiles.sort();
@@ -484,11 +523,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // File loading logic
 ////////////////////////////////////////////////////////////////////////////////
-    const filewordsinstance = document.getElementById("filewords");
-    const filewordscountinstance = document.getElementById("filewordscount");
-    filewordsinstance.addEventListener("change", filewordshandler);
-    const fileprogressbarinstance = document.getElementById("fileprogressbar");
-
     // In this function we pre-process the file and optimize the information
     // into a format far more efficient for the processing we want to realize
     // with it.
@@ -539,14 +573,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Display and event logic
 ////////////////////////////////////////////////////////////////////////////////
-    const lineinputinstance = document.getElementById("lineinput");
-    lineinputinstance.addEventListener("input", lineInputListener);
-
-    const buttonlinessubmit = document.getElementById("linesubmit");
-    buttonlinessubmit.onclick = lineInputSumbmit;
-    const tabletilesinstance = document.getElementById("tabletiles");
-    const tablewordsinstance = document.getElementById("tablewords");
-
     // Initializations from cached data
     lineInputGridDisplay(lineinputinstance.value);
 
@@ -644,15 +670,6 @@
     }
 
     // Starts with tiles selector logic
-    const starttilesselectorinstance = document.getElementById(
-      "starttilesselector"
-    );
-    const startstilesinstance = document.getElementById("startstiles");
-    startstilesinstance.addEventListener("input", startTilesListener);
-    starttilesselectorinstance.addEventListener("click",
-      startsWithtilesHandler
-    );
-
     function startTilesListener(e) {
       var cursorStart = e.target.selectionStart,
         cursorEnd = e.target.selectionEnd;
