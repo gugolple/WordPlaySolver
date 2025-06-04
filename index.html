@@ -555,7 +555,14 @@
       while(tablewordsinstance.rows.length > 1) {
         tablewordsinstance.deleteRow(1);
       }
+      const startTiles = startstilesinstance.value;
       for(const resultWord of answers) {
+        // If we have a start sequence skip words that do not match
+        if (startTiles.length > 0){
+          if(startTiles != resultWord.word[0]) {
+            continue;
+          }
+        }
         // Uncomment to debug the row to be displayed
         //console.log(row);
         let tableRow = tablewordsinstance.insertRow(-1);
@@ -641,9 +648,19 @@
       "starttilesselector"
     );
     const startstilesinstance = document.getElementById("startstiles");
+    startstilesinstance.addEventListener("input", startTilesListener);
     starttilesselectorinstance.addEventListener("click",
       startsWithtilesHandler
     );
+
+    function startTilesListener(e) {
+      var cursorStart = e.target.selectionStart,
+        cursorEnd = e.target.selectionEnd;
+      startstilesinstance.value = startstilesinstance.value.toUpperCase();
+      // Restore them after the function calls
+      e.target.setSelectionRange(cursorStart, cursorEnd);
+    }
+
     function startsWithtilesHandler(e) {
       startstilesinstance.toggleAttribute("disabled");
       if (startstilesinstance.hasAttribute("disabled")) {
