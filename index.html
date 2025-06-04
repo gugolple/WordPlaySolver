@@ -197,6 +197,20 @@
 // Word scoring logic
 ////////////////////////////////////////////////////////////////////////////////
 
+    function scoreWordByTiles(word, availableTiles) {
+      let total = 0;
+      return total;
+    }
+
+    function scoreWordByExtras(word) {
+      // TODO add multipliers
+      return WORD_LENGTH_SCORE[word.length];
+    }
+
+    function scoreWordOverall(word, availableTiles) {
+      return scoreWordByTiles(word, availableTiles) +
+        scoreWordByExtras(word);
+    }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Word graph logic
@@ -215,39 +229,44 @@
     // the reachable words from the full pool of possibilities
     function treeSearchRecursive(
       currentTree,
-      availableTokens,
+      availableTiles,
       seenWords,
-      currentWord
+      currentWord,
+      currentWordTiles
     ) {
       // Basic backtracking concept, do not realize known work twice
       // The specific work is the word and the available tokens
       //   This is specially important for joker tiles
-      const currentSituation = [currentWord, availableTokens];
+      const currentSituation = [currentWord, availableTiles];
       if (currentSituation in seenWords) {
         return new Set();
       }
+
       // We must add to the set in an array to prevent the set function from
       // splitting the string into characters
       seenWords.add([currentSituation]);
       let resultSet = new Set();
       if (WORD_LIST.has(currentWord)) {
-        resultSet.add([currentWord]);
+        resultSet.add([currentWord, currentWordTiles]);
       }
+
       // Debug to check the progress of the search
       //console.log("Recursed tile", currentWord, WORD_LIST.has(currentWord));
-
-      for(currentTile of new Set(availableTokens)) {
+      for(currentTile of new Set(availableTiles)) {
         // First scenario, the joker
         if (currentTile == "*") {
-          let nextTokens = cloneArrayRemoveInstance(availableTokens, currentTile);
+          let nextTiles = cloneArrayRemoveInstance(availableTiles, currentTile);
           for (possibleTile of SEARCH_LETTERS) {
             if (possibleTile in currentTree) {
+              nextWordTiles = currentWordTiles.slice();
+              nextWordTiles.push(possibleTile);
               resultSet = resultSet.union(
                 treeSearchRecursive(
                   currentTree[possibleTile],
-                  nextTokens,
+                  nextTiles,
                   seenWords,
-                  currentWord + possibleTile
+                  currentWord + possibleTile,
+                  nextWordTiles
                 )
               );
             }
@@ -270,32 +289,38 @@
           // If the start is valid
           //   we already know the subtree location and can jump directly
           if (validStart) {
-            let nextTokens = cloneArrayRemoveInstance(
-              availableTokens,
+            let nextTiles = cloneArrayRemoveInstance(
+              availableTiles,
               currentTile
             );
+            nextWordTiles = currentWordTiles.slice();
+            nextWordTiles.push(currentTile);
             resultSet = resultSet.union(
               treeSearchRecursive(
                 currentWordTree,
-                nextTokens,
+                nextTiles,
                 seenWords,
-                currentWord + currentTile
+                currentWord + currentTile,
+                nextWordTiles
               )
             );
           }
         // Third scenario, a basic tile
         } else {
           if (currentTile in currentTree) {
-            let nextTokens = cloneArrayRemoveInstance(
-              availableTokens,
+            let nextTiles = cloneArrayRemoveInstance(
+              availableTiles,
               currentTile
             );
+            nextWordTiles = currentWordTiles.slice();
+            nextWordTiles.push(currentTile);
             resultSet = resultSet.union(
               treeSearchRecursive(
                 currentTree[currentTile],
-                nextTokens,
+                nextTiles,
                 seenWords,
-                currentWord + currentTile
+                currentWord + currentTile,
+                nextWordTiles
               )
             );
           }
@@ -317,7 +342,8 @@
         WORD_TREE,
         tokens,
         seen,
-        ""
+        "",
+        []
       );
       console.log(answers);
     }
@@ -337,7 +363,7 @@
     }
 
     function availableLettersTokenizer(availableLetters) {
-      let resultTokens = [];
+      let resultTiles = [];
       availableLetters = availableLetters.toUpperCase();
       const splitAvailableLetters = availableLetters.split('');
       // Traverse the full array of characters
@@ -347,7 +373,7 @@
         for(const specialSeq of SPECIAL_SEQUENCES) {
           if (availableLetters.indexOf(specialSeq, idx) == idx) {
             // Add the special sequence to the result
-            resultTokens.push(specialSeq);
+            resultTiles.push(specialSeq);
             // Advance forward the extra letters
             idx += specialSeq.length -1;
             specialSeqFound = true;
@@ -357,10 +383,10 @@
         // If not a special sequence add the character to the list
         if (! specialSeqFound) {
           const curLet = splitAvailableLetters[idx];
-          resultTokens.push(curLet);
+          resultTiles.push(curLet);
         }
       }
-      return resultTokens;
+      return resultTiles;
     }
 
     function validateWord(possibleWord) {
@@ -447,6 +473,10 @@
     lineInputGridDisplay(lineinputinstance.value);
 
     function lineInputSumbmit(e) {
+      if (WORD_LIST.size == 0) {
+        alert("No file selected!");
+        return;
+      }
       treeSearch(lineinputinstance.value);
     }
 
