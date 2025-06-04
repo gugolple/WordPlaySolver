@@ -135,7 +135,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Word scoring constants
 ////////////////////////////////////////////////////////////////////////////////
-    const VOWELS = "AEIOU".split('');
+    const VOWELS = new Set("AEIOU");
     const LONG_TILES = ["QU", "ING"];
     const TILE_SCORE = {
       'A': 1,
@@ -197,16 +197,44 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Word scoring logic
 ////////////////////////////////////////////////////////////////////////////////
+    const firstvowelinstance = document.getElementById("firstvowel");
+    //console.log("firstvowel", firstvowelinstance.checked);
+    const startsendssameinstance = document.getElementById("startsendssame");
+    //console.log("startsendssame", startsendssameinstance.checked);
+    const consecutivesameinstance = document.getElementById("consecutivesame");
+    //console.log("consecutivesame", consecutivesameinstance.checked);
+
     function scoreWordByTiles(wordTiles) {
       let total = 0;
+      for (let currentTile of wordTiles) {
+        if (!(currentTile in TILE_SCORE)) {
+          throw new Error(`Tile: ${currentTile} unknown. Not in TILE_SCORE`);
+        }
+        total += TILE_SCORE[currentTile];
+      }
       return total;
     }
 
     function scoreWordByExtras(wordTiles) {
       let score = WORD_LENGTH_SCORE[wordTiles.length];
       if (firstvowelinstance.checked) {
-        if (wordTiles[0] in VOWELS) {
-          score *= 2;
+        if (VOWELS.has(wordTiles[0])) {
+          score = score * 2;
+        }
+      }
+      if (startsendssameinstance.checked) {
+        if (wordTiles[0] == wordTiles.at(-1)) {
+          score = score * 2;
+        }
+      }
+      if (consecutivesameinstance.checked) {
+        const word = wordTiles.join("");
+        const wordLengthLimit = word.length -1;
+        for(let idx = 0; idx < wordLengthLimit ; idx++) {
+          if (word[idx] == word[idx+1]) {
+            score = score * 2;
+            break;
+          }
         }
       }
       return score;
@@ -374,7 +402,7 @@
       // Sort to have an stable search, making all tiles of the same value
       // interchangable
       tiles.sort();
-      console.log("Sorted tiles", tiles);
+      //console.log("Sorted tiles", tiles);
       let seen = new Set();
       let result = new Map();
       treeSearchRecursive(
@@ -522,6 +550,10 @@
     lineInputGridDisplay(lineinputinstance.value);
 
     function displayAnswers(answers) {
+      // First cleanup old answers
+      while(tablewordsinstance.rows.length > 1) {
+        tablewordsinstance.deleteRow(1);
+      }
       for(const resultWord of answers) {
         // Uncomment to debug the row to be displayed
         //console.log(row);
