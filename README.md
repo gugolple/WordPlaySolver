@@ -8,3 +8,7 @@ solver I created for the game "Word Play".
 To prevent any issues you **must upload the resources.assets** file to the
 webpage manually. This shall be done only once and will remain in cache
 afterwards.
+
+# Link hosted in GitHub pages
+
+https://gugolple.github.io/WordPlaySolver/
